@@ -1,0 +1,10 @@
+# Frontend
+node_modules/
+.next/
+
+# Backend
+target/
+.idea/
+
+# Environment secrets
+.env
