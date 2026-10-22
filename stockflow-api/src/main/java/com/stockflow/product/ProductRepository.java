@@ -1,14 +1,14 @@
 
 package com.stockflow.product;
 
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
-import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,25 +32,29 @@ public interface ProductRepository extends
             List<Predicate> predicates = new ArrayList<>();
 
             if (search != null && !search.isBlank()) {
-                String pattern = "%" + search.trim().toLowerCase() + "%";
+                String pattern = "%"
+                    + search.trim().toLowerCase()
+                    + "%";
 
-                predicates.add(
-                        cb.or(
-                                cb.like(cb.lower(root.get("name")), pattern),
-                                cb.like(cb.lower(root.get("sku")), pattern)
-                        )
-                );
+                predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("name")), pattern),
+                    cb.like(cb.lower(root.get("sku")), pattern),
+                    cb.like(
+                        cb.lower(root.get("description")),
+                        pattern
+                    )
+                ));
             }
 
             if (categoryId != null) {
                 predicates.add(
-                        cb.equal(root.get("category").get("id"), categoryId)
+                    cb.equal(root.get("category").get("id"), categoryId)
                 );
             }
 
             if (active != null) {
                 predicates.add(
-                        cb.equal(root.get("active"), active)
+                    cb.equal(root.get("active"), active)
                 );
             }
 

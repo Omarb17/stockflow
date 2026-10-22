@@ -1,3 +1,4 @@
+
 package com.stockflow.product;
 
 import com.stockflow.category.Category;
@@ -6,11 +7,16 @@ import com.stockflow.common.exception.DuplicateResourceException;
 import com.stockflow.common.exception.ResourceNotFoundException;
 import com.stockflow.product.dto.ProductRequest;
 import com.stockflow.product.dto.ProductResponse;
+
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -29,20 +35,20 @@ public class ProductService {
 
     @Transactional
     public ProductResponse create(ProductRequest request) {
-        String sku = request.sku().trim();
+        String sku = normalizeSku(request.sku());
 
         if (productRepository.existsBySkuIgnoreCase(sku)) {
             throw new DuplicateResourceException("SKU already exists");
         }
 
-        Category category = getCategory(request.categoryId());
+        Category category = getActiveCategory(request.categoryId());
 
         Product product = new Product(
             request.name().trim(),
             sku,
             cleanDescription(request.description()),
             category,
-            request.unit().trim().toLowerCase(),
+            normalizeUnit(request.unit()),
             request.costPrice(),
             request.reorderLevel()
         );
@@ -67,22 +73,31 @@ public class ProductService {
         String sortDirection
     ) {
         if (page < 0) {
-            throw new IllegalArgumentException("Page cannot be negative");
+            throw new IllegalArgumentException(
+                "Page cannot be negative"
+            );
         }
 
         if (size < 1 || size > 100) {
-            throw new IllegalArgumentException("Page size must be between 1 and 100");
+            throw new IllegalArgumentException(
+                "Page size must be between 1 and 100"
+            );
         }
 
-        if (!sortBy.equals("name")
-            && !sortBy.equals("sku")
-            && !sortBy.equals("costPrice")
-            && !sortBy.equals("createdAt")
-            && !sortBy.equals("updatedAt")) {
-            throw new IllegalArgumentException("Unsupported sort field");
+        if (sortBy == null || !isAllowedSortField(sortBy)) {
+            throw new IllegalArgumentException(
+                "Unsupported sort field"
+            );
+        }
+
+        if (sortDirection == null) {
+            throw new IllegalArgumentException(
+                "Sort direction must be 'asc' or 'desc'"
+            );
         }
 
         Sort.Direction direction;
+
         try {
             direction = Sort.Direction.fromString(sortDirection);
         } catch (IllegalArgumentException exception) {
@@ -98,10 +113,15 @@ public class ProductService {
         );
 
         String normalizedSearch =
-            search == null || search.isBlank() ? null : search.trim();
+            search == null || search.isBlank()
+                ? null
+                : search.trim();
 
         return productRepository.search(
-            normalizedSearch, categoryId, active, pageable
+            normalizedSearch,
+            categoryId,
+            active,
+            pageable
         ).map(this::toResponse);
     }
 
@@ -111,22 +131,32 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponse update(UUID id, ProductRequest request) {
+    public ProductResponse update(
+        UUID id,
+        ProductRequest request
+    ) {
         Product product = getProduct(id);
-        String sku = request.sku().trim();
+
+        if (!product.isActive()) {
+            throw new IllegalArgumentException(
+                "Archived products cannot be updated"
+            );
+        }
+
+        String sku = normalizeSku(request.sku());
 
         if (productRepository.existsBySkuIgnoreCaseAndIdNot(sku, id)) {
             throw new DuplicateResourceException("SKU already exists");
         }
 
-        Category category = getCategory(request.categoryId());
+        Category category = getActiveCategory(request.categoryId());
 
         product.updateDetails(
             request.name().trim(),
             sku,
             cleanDescription(request.description()),
             category,
-            request.unit().trim().toLowerCase(),
+            normalizeUnit(request.unit()),
             request.costPrice(),
             request.reorderLevel()
         );
@@ -149,21 +179,50 @@ public class ProductService {
     private Product getProduct(UUID id) {
         return productRepository.findById(id)
             .orElseThrow(() ->
-                new ResourceNotFoundException("Product not found: " + id)
+                new ResourceNotFoundException(
+                    "Product not found: " + id
+                )
             );
     }
 
-    private Category getCategory(UUID id) {
-        return categoryRepository.findById(id)
+    private Category getActiveCategory(UUID id) {
+        Category category = categoryRepository.findById(id)
             .orElseThrow(() ->
-                new ResourceNotFoundException("Category not found: " + id)
+                new ResourceNotFoundException(
+                    "Category not found: " + id
+                )
             );
+
+        if (!category.isActive()) {
+            throw new IllegalArgumentException(
+                "Cannot assign an archived category to a product"
+            );
+        }
+
+        return category;
+    }
+
+    private boolean isAllowedSortField(String sortBy) {
+        return switch (sortBy) {
+            case "name", "sku", "costPrice",
+                 "createdAt", "updatedAt" -> true;
+            default -> false;
+        };
+    }
+
+    private String normalizeSku(String sku) {
+        return sku.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeUnit(String unit) {
+        return unit.trim().toLowerCase(Locale.ROOT);
     }
 
     private String cleanDescription(String description) {
         if (description == null || description.isBlank()) {
             return null;
         }
+
         return description.trim();
     }
 

@@ -1,8 +1,10 @@
+
 package com.stockflow.product;
 
 import com.stockflow.product.dto.ProductRequest;
 import com.stockflow.product.dto.ProductResponse;
 import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +40,13 @@ public class ProductController {
         @RequestParam(defaultValue = "asc") String sortDirection
     ) {
         return productService.findAll(
-            search, categoryId, active, page, size, sortBy, sortDirection
+            search,
+            categoryId,
+            active,
+            page,
+            size,
+            sortBy,
+            sortDirection
         );
     }
 

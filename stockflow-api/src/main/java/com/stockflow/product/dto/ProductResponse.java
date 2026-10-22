@@ -1,3 +1,4 @@
+
 package com.stockflow.product.dto;
 
 import java.math.BigDecimal;
@@ -17,4 +18,5 @@ public record ProductResponse(
     boolean active,
     Instant createdAt,
     Instant updatedAt
-) {}
+) {
+}
