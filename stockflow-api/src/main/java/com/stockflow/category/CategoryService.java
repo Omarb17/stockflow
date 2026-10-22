@@ -5,6 +5,7 @@ import com.stockflow.category.dto.CategoryRequest;
 import com.stockflow.category.dto.CategoryResponse;
 import com.stockflow.common.exception.DuplicateResourceException;
 import com.stockflow.common.exception.ResourceNotFoundException;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,38 +29,56 @@ public class CategoryService {
 
         if (categoryRepository.existsByNameIgnoreCase(name)) {
             throw new DuplicateResourceException(
-                "A category with this name already exists"
+                    "A category with this name already exists"
             );
         }
 
         Category category = new Category(
-            name,
-            cleanDescription(request.description())
+                name,
+                cleanDescription(request.description())
         );
 
         try {
-            return toResponse(categoryRepository.saveAndFlush(category));
+            return toResponse(
+                    categoryRepository.saveAndFlush(category)
+            );
         } catch (DataIntegrityViolationException exception) {
             throw new DuplicateResourceException(
-                "A category with this name already exists"
+                    "A category with this name already exists"
             );
         }
     }
 
     @Transactional(readOnly = true)
     public Page<CategoryResponse> findAll(
-        String search,
-        Boolean active,
-        Pageable pageable
+            String search,
+            Boolean active,
+            Pageable pageable
     ) {
         String normalizedSearch =
-            search == null || search.isBlank()
-                ? null
-                : search.trim();
+                search == null || search.isBlank()
+                        ? null
+                        : search.trim();
 
-        return categoryRepository
-            .search(normalizedSearch, active, pageable)
-            .map(this::toResponse);
+        Page<Category> categories;
+
+        if (normalizedSearch != null && active != null) {
+            categories = categoryRepository.searchByTextAndActive(
+                    normalizedSearch, active, pageable
+            );
+        } else if (normalizedSearch != null) {
+            categories = categoryRepository.searchByText(
+                    normalizedSearch, pageable
+            );
+        } else if (active != null) {
+            categories = categoryRepository.findByActive(
+                    active, pageable
+            );
+        } else {
+            categories = categoryRepository.findAll(pageable);
+        }
+
+        return categories.map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
@@ -69,29 +88,30 @@ public class CategoryService {
 
     @Transactional
     public CategoryResponse update(
-        UUID id,
-        CategoryRequest request
+            UUID id,
+            CategoryRequest request
     ) {
         Category category = getCategory(id);
         String name = normalizeName(request.name());
 
-        if (categoryRepository.existsByNameIgnoreCaseAndIdNot(
-                name, id)) {
+        if (categoryRepository.existsByNameIgnoreCaseAndIdNot(name, id)) {
             throw new DuplicateResourceException(
-                "A category with this name already exists"
+                    "A category with this name already exists"
             );
         }
 
         category.setName(name);
         category.setDescription(
-            cleanDescription(request.description())
+                cleanDescription(request.description())
         );
 
         try {
-            return toResponse(categoryRepository.saveAndFlush(category));
+            return toResponse(
+                    categoryRepository.saveAndFlush(category)
+            );
         } catch (DataIntegrityViolationException exception) {
             throw new DuplicateResourceException(
-                "A category with this name already exists"
+                    "A category with this name already exists"
             );
         }
     }
@@ -106,11 +126,9 @@ public class CategoryService {
 
     private Category getCategory(UUID id) {
         return categoryRepository.findById(id)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "Category not found: " + id
-                )
-            );
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Category not found: " + id
+                ));
     }
 
     private String normalizeName(String name) {
@@ -127,12 +145,12 @@ public class CategoryService {
 
     private CategoryResponse toResponse(Category category) {
         return new CategoryResponse(
-            category.getId(),
-            category.getName(),
-            category.getDescription(),
-            category.isActive(),
-            category.getCreatedAt(),
-            category.getUpdatedAt()
+                category.getId(),
+                category.getName(),
+                category.getDescription(),
+                category.isActive(),
+                category.getCreatedAt(),
+                category.getUpdatedAt()
         );
     }
 }

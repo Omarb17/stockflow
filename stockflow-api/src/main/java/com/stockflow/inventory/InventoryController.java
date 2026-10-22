@@ -23,64 +23,71 @@ public class InventoryController {
 
     @GetMapping("/stock")
     public Page<StockResponse> findStock(
-        @RequestParam(required = false) UUID warehouseId,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size
+            @RequestParam(required = false) UUID warehouseId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
         validatePage(page, size);
-
         return service.findStock(
-            warehouseId,
-            PageRequest.of(page, size, Sort.by("updatedAt").descending())
+                warehouseId,
+                PageRequest.of(page, size, Sort.by("updatedAt").descending())
+        );
+    }
+
+    @GetMapping("/low-stock")
+    public Page<StockResponse> findLowStock(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        validatePage(page, size);
+        return service.findLowStock(
+                PageRequest.of(page, size, Sort.by("updatedAt").descending())
         );
     }
 
     @PostMapping("/receive")
     @ResponseStatus(HttpStatus.CREATED)
     public StockResponse receive(
-        @Valid @RequestBody StockOperationRequest request
+            @Valid @RequestBody StockOperationRequest request
     ) {
         return service.receive(request);
     }
 
     @PostMapping("/issue")
     public StockResponse issue(
-        @Valid @RequestBody StockOperationRequest request
+            @Valid @RequestBody StockOperationRequest request
     ) {
         return service.issue(request);
     }
 
     @PostMapping("/adjust")
     public StockResponse adjust(
-        @Valid @RequestBody StockAdjustmentRequest request
+            @Valid @RequestBody StockAdjustmentRequest request
     ) {
         return service.adjust(request);
     }
 
     @GetMapping("/movements")
     public Page<StockMovementResponse> movements(
-        @RequestParam(required = false) UUID productId,
-        @RequestParam(required = false) UUID warehouseId,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size
+            @RequestParam(required = false) UUID productId,
+            @RequestParam(required = false) UUID warehouseId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
         validatePage(page, size);
-
         return service.findMovements(
-            productId,
-            warehouseId,
-            PageRequest.of(
-                page,
-                size,
-                Sort.by("createdAt").descending()
-            )
+                productId,
+                warehouseId,
+                PageRequest.of(
+                        page, size, Sort.by("createdAt").descending()
+                )
         );
     }
 
     private void validatePage(int page, int size) {
         if (page < 0 || size < 1 || size > 100) {
             throw new IllegalArgumentException(
-                "Page must be non-negative and size must be between 1 and 100"
+                    "Page must be non-negative and size must be between 1 and 100"
             );
         }
     }

@@ -24,6 +24,12 @@ public class InventoryService {
     private final ProductRepository productRepository;
     private final WarehouseRepository warehouseRepository;
 
+    @Transactional(readOnly = true)
+    public Page<StockResponse> findLowStock(Pageable pageable) {
+        return stockRepository.findLowStock(pageable)
+                .map(this::toStockResponse);
+    }
+
     public InventoryService(
         StockRecordRepository stockRepository,
         StockMovementRepository movementRepository,

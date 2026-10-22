@@ -1,3 +1,4 @@
+
 package com.stockflow.category;
 
 import jakarta.persistence.*;
@@ -17,6 +18,9 @@ public class Category {
 
     @Column(length = 500)
     private String description;
+
+    @Column(nullable = false)
+    private boolean active = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -44,14 +48,43 @@ public class Category {
         updatedAt = Instant.now();
     }
 
-    public UUID getId() { return id; }
-    public String getName() { return name; }
-    public String getDescription() { return description; }
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
+    public void archive() {
+        this.active = false;
+    }
 
-    public void setName(String name) { this.name = name; }
+    public UUID getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

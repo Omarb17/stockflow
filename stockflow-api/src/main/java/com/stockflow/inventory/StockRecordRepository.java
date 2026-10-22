@@ -19,6 +19,7 @@ public interface StockRecordRepository
         UUID warehouseId
     );
 
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         SELECT s FROM StockRecord s
@@ -29,6 +30,13 @@ public interface StockRecordRepository
         @Param("productId") UUID productId,
         @Param("warehouseId") UUID warehouseId
     );
+
+    @Query("""
+    SELECT s FROM StockRecord s
+    WHERE s.quantity <= s.product.reorderLevel
+    ORDER BY s.updatedAt DESC
+    """)
+    Page<StockRecord> findLowStock(Pageable pageable);
 
     List<StockRecord> findByWarehouse_Id(UUID warehouseId);
 
