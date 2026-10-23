@@ -88,35 +88,6 @@ The application provides secure authentication, real-time stock visibility throu
 - Maven
 - npm
 
-## Project Structure
-
-stockflow/
-├── stockflow-api/
-│ ├── src/
-│ │ └── main/
-│ │ ├── java/com/stockflow/
-│ │ │ ├── config/
-│ │ │ ├── user/
-│ │ │ ├── product/
-│ │ │ ├── category/
-│ │ │ ├── warehouse/
-│ │ │ ├── inventory/
-│ │ │ ├── supplier/
-│ │ │ └── purchase/
-│ │ └── resources/
-│ │ ├── application.properties
-│ │ └── db/migration/
-│ └── pom.xml
-│
-├── stockflow-client/
-│ ├── src/
-│ │ └── app/
-│ ├── public/
-│ ├── package.json
-│ └── .env.local
-│
-└── README.md
-
 ## Getting Started
 
 ### Prerequisites
