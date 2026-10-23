@@ -1,3 +1,30 @@
+<img width="1917" height="828" alt="Capture d&#39;écran 2026-10-23 164202" src="https://github.com/user-attachments/assets/936f6a35-cf19-4b34-b4cd-b163291049ff" />
+
+<img width="1919" height="838" alt="Capture d&#39;écran 2026-10-23 164229" src="https://github.com/user-attachments/assets/70b3a2ef-4b21-4d50-a6d9-4c319a26efeb" />
+
+### Frontend
+
+- **Next.js** — React framework using the App Router
+- **TypeScript** — Type-safe development
+- **Material UI (MUI)** — UI components and responsive layouts
+- **MUI Icons** — Interface icons
+- **Axios** — HTTP requests to the backend API
+- **TanStack Query** — API data fetching, caching, and synchronization
+- **React Hook Form** — Form management
+- **Zod** — Input validation
+- **Recharts** — Dashboard charts
+
+### Backend
+
+- **Java** — Programming language
+- **Spring Boot** — REST API development
+- **Spring Security** — Application security
+- **JWT** — Stateless authentication
+- **Spring Data JPA / Hibernate** — Database access
+- **PostgreSQL** — Relational database
+- **Flyway** — Database migrations
+
+
 # StockFlow — Inventory Management System
 
 StockFlow is a full-stack inventory management application designed to help businesses manage products, categories, warehouses, stock movements, suppliers, and purchase orders from a centralized dashboard.
